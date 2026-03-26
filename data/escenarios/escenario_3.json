@@ -1,0 +1,141 @@
+{
+  "nombre": "Escenario 3 - Avenida principal",
+  "ancho": 1280,
+  "alto": 720,
+  "controlador": {
+    "verde_h": 14,
+    "amarillo_h": 3,
+    "verde_v": 12,
+    "amarillo_v": 3
+  },
+  "vias": [
+    {
+      "x": 0,
+      "y": 180,
+      "ancho": 1280,
+      "alto": 360,
+      "orientacion": "horizontal",
+      "linea_central": true,
+      "lineas_separacion": [
+        { "orientacion": "horizontal", "pos": 240 },
+        { "orientacion": "horizontal", "pos": 300 },
+        { "orientacion": "horizontal", "pos": 420 },
+        { "orientacion": "horizontal", "pos": 480 }
+      ]
+    },
+    {
+      "x": 500,
+      "y": 0,
+      "ancho": 280,
+      "alto": 720,
+      "orientacion": "vertical",
+      "linea_central": true,
+      "lineas_separacion": [
+        { "orientacion": "vertical", "pos": 570 },
+        { "orientacion": "vertical", "pos": 650 },
+        { "orientacion": "vertical", "pos": 730 }
+      ]
+    }
+  ],
+  "cebras": [
+    { "x": 475, "y": 180, "ancho": 20, "alto": 360 },
+    { "x": 785, "y": 180, "ancho": 20, "alto": 360 },
+    { "x": 500, "y": 155, "ancho": 280, "alto": 20 },
+    { "x": 500, "y": 545, "ancho": 280, "alto": 20 }
+  ],
+  "lineas_pare": [
+    { "x": 455, "y": 180, "ancho": 8, "alto": 360 },
+    { "x": 825, "y": 180, "ancho": 8, "alto": 360 },
+    { "x": 500, "y": 140, "ancho": 280, "alto": 8 },
+    { "x": 500, "y": 570, "ancho": 280, "alto": 8 }
+  ],
+  "semaforos": [
+    { "id": "H1", "x": 435, "y": 220, "grupo": "H" },
+    { "id": "H2", "x": 435, "y": 500, "grupo": "H" },
+    { "id": "H3", "x": 845, "y": 260, "grupo": "H" },
+    { "id": "H4", "x": 845, "y": 540, "grupo": "H" },
+    { "id": "V1", "x": 540, "y": 120, "grupo": "V" },
+    { "id": "V2", "x": 710, "y": 120, "grupo": "V" },
+    { "id": "V3", "x": 600, "y": 600, "grupo": "V" },
+    { "id": "V4", "x": 770, "y": 600, "grupo": "V" }
+  ],
+  "carriles": [
+    {
+      "id_carril": "E1",
+      "eje": "x",
+      "coordenada_fija": 240,
+      "direccion": 1,
+      "inicio": -120,
+      "fin": 1400,
+      "coord_pare": 455,
+      "grupo_semaforo": "H",
+      "spawn_intervalo": 0.95
+    },
+    {
+      "id_carril": "E2",
+      "eje": "x",
+      "coordenada_fija": 300,
+      "direccion": 1,
+      "inicio": -120,
+      "fin": 1400,
+      "coord_pare": 455,
+      "grupo_semaforo": "H",
+      "spawn_intervalo": 1.10
+    },
+    {
+      "id_carril": "W1",
+      "eje": "x",
+      "coordenada_fija": 420,
+      "direccion": -1,
+      "inicio": 1400,
+      "fin": -120,
+      "coord_pare": 825,
+      "grupo_semaforo": "H",
+      "spawn_intervalo": 1.00
+    },
+    {
+      "id_carril": "W2",
+      "eje": "x",
+      "coordenada_fija": 480,
+      "direccion": -1,
+      "inicio": 1400,
+      "fin": -120,
+      "coord_pare": 825,
+      "grupo_semaforo": "H",
+      "spawn_intervalo": 1.20
+    },
+    {
+      "id_carril": "S1",
+      "eje": "y",
+      "coordenada_fija": 570,
+      "direccion": 1,
+      "inicio": -120,
+      "fin": 840,
+      "coord_pare": 140,
+      "grupo_semaforo": "V",
+      "spawn_intervalo": 1.25
+    },
+    {
+      "id_carril": "S2",
+      "eje": "y",
+      "coordenada_fija": 650,
+      "direccion": 1,
+      "inicio": -120,
+      "fin": 840,
+      "coord_pare": 140,
+      "grupo_semaforo": "V",
+      "spawn_intervalo": 1.45
+    },
+    {
+      "id_carril": "N1",
+      "eje": "y",
+      "coordenada_fija": 730,
+      "direccion": -1,
+      "inicio": 840,
+      "fin": -120,
+      "coord_pare": 570,
+      "grupo_semaforo": "V",
+      "spawn_intervalo": 1.35
+    }
+  ]
+}
