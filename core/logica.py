@@ -1,3 +1,9 @@
+import os
+import random
+import pygame
+
+from core.infraestructura import cargar_escenarios
+from core.vehiculos import TIPOS_VEHICULO
 class GestorSimulacion:
     def __init__(self):
         carpeta_escenarios = os.path.join("data", "escenarios")
