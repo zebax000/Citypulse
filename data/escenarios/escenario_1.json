@@ -1,0 +1,101 @@
+{
+  "nombre": "Escenario 1 - Intersección básica",
+  "ancho": 1280,
+  "alto": 720,
+  "controlador": {
+    "verde_h": 10,
+    "amarillo_h": 3,
+    "verde_v": 10,
+    "amarillo_v": 3
+  },
+  "vias": [
+    {
+      "x": 0,
+      "y": 260,
+      "ancho": 1280,
+      "alto": 200,
+      "orientacion": "horizontal",
+      "linea_central": true,
+      "lineas_separacion": [
+        { "orientacion": "horizontal", "pos": 310 },
+        { "orientacion": "horizontal", "pos": 410 }
+      ]
+    },
+    {
+      "x": 470,
+      "y": 0,
+      "ancho": 220,
+      "alto": 720,
+      "orientacion": "vertical",
+      "linea_central": true,
+      "lineas_separacion": [
+        { "orientacion": "vertical", "pos": 530 },
+        { "orientacion": "vertical", "pos": 630 }
+      ]
+    }
+  ],
+  "cebras": [
+    { "x": 445, "y": 260, "ancho": 20, "alto": 200 },
+    { "x": 695, "y": 260, "ancho": 20, "alto": 200 },
+    { "x": 470, "y": 235, "ancho": 220, "alto": 20 },
+    { "x": 470, "y": 465, "ancho": 220, "alto": 20 }
+  ],
+  "lineas_pare": [
+    { "x": 430, "y": 260, "ancho": 8, "alto": 200 },
+    { "x": 730, "y": 260, "ancho": 8, "alto": 200 },
+    { "x": 470, "y": 220, "ancho": 220, "alto": 8 },
+    { "x": 470, "y": 490, "ancho": 220, "alto": 8 }
+  ],
+  "semaforos": [
+    { "id": "H1", "x": 410, "y": 300, "grupo": "H" },
+    { "id": "H2", "x": 750, "y": 420, "grupo": "H" },
+    { "id": "V1", "x": 510, "y": 200, "grupo": "V" },
+    { "id": "V2", "x": 650, "y": 520, "grupo": "V" }
+  ],
+  "carriles": [
+    {
+      "id_carril": "E1",
+      "eje": "x",
+      "coordenada_fija": 310,
+      "direccion": 1,
+      "inicio": -100,
+      "fin": 1380,
+      "coord_pare": 430,
+      "grupo_semaforo": "H",
+      "spawn_intervalo": 1.2
+    },
+    {
+      "id_carril": "W1",
+      "eje": "x",
+      "coordenada_fija": 410,
+      "direccion": -1,
+      "inicio": 1380,
+      "fin": -100,
+      "coord_pare": 730,
+      "grupo_semaforo": "H",
+      "spawn_intervalo": 1.4
+    },
+    {
+      "id_carril": "S1",
+      "eje": "y",
+      "coordenada_fija": 530,
+      "direccion": 1,
+      "inicio": -100,
+      "fin": 820,
+      "coord_pare": 220,
+      "grupo_semaforo": "V",
+      "spawn_intervalo": 1.5
+    },
+    {
+      "id_carril": "N1",
+      "eje": "y",
+      "coordenada_fija": 630,
+      "direccion": -1,
+      "inicio": 820,
+      "fin": -100,
+      "coord_pare": 490,
+      "grupo_semaforo": "V",
+      "spawn_intervalo": 1.6
+    }
+  ]
+}
