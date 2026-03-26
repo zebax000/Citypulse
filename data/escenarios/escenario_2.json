@@ -1,1 +1,229 @@
+import os
+import random
+import math
+import pygame
 
+DIRECTORIO_ACTUAL = os.path.dirname(os.path.abspath(__file__))
+RAIZ_PROYECTO = os.path.dirname(DIRECTORIO_ACTUAL)
+RUTA_SPRITES = os.path.join(RAIZ_PROYECTO, "assets", "sprites")
+
+
+def _archivo_existe(nombre_archivo):
+    return os.path.exists(os.path.join(RUTA_SPRITES, nombre_archivo))
+
+
+def _elegir_sprite_disponible(candidatos):
+    disponibles = [c for c in candidatos if _archivo_existe(c)]
+    if disponibles:
+        return random.choice(disponibles)
+    return candidatos[0]
+
+
+class Vehiculo(pygame.sprite.Sprite):
+    def __init__(
+        self,
+        id_v,
+        carril,
+        nombre_img,
+        ancho,
+        alto,
+        velocidad_max,
+        aceleracion,
+        frenado,
+        color_respaldo
+    ):
+        super().__init__()
+        self.id = id_v
+        self.carril = carril
+        self.nombre_img = nombre_img
+        self.ancho = int(ancho)
+        self.alto = int(alto)
+        self.velocidad_max = float(velocidad_max)
+        self.velocidad_actual = random.uniform(self.velocidad_max * 0.45, self.velocidad_max * 0.70)
+        self.aceleracion = float(aceleracion)
+        self.frenado = float(frenado)
+        self.color_respaldo = color_respaldo
+
+        self.estado = "ACTIVO"
+        self.distancia_seguridad = 22
+        self.tiempo_espera = 0.0
+        self.distancia_recorrida = 0.0
+
+        self.progreso = -self.largo_modelo()
+        self.image = self._cargar_imagen()
+        self.rect = self._crear_rect()
+
+    def largo_modelo(self):
+        return self.ancho if self.carril.eje == "x" else self.alto
+
+    def _cargar_imagen(self):
+        ruta_icono = os.path.join(RUTA_SPRITES, self.nombre_img)
+
+        try:
+            imagen_original = pygame.image.load(ruta_icono).convert_alpha()
+
+            if self.carril.eje == "x":
+                imagen = pygame.transform.scale(imagen_original, (self.ancho, self.alto))
+                if self.carril.direccion < 0:
+                    imagen = pygame.transform.flip(imagen, True, False)
+            else:
+                imagen = pygame.transform.rotate(imagen_original, -90 if self.carril.direccion > 0 else 90)
+                imagen = pygame.transform.scale(imagen, (self.alto, self.ancho))
+
+            return imagen
+
+        except Exception:
+            if self.carril.eje == "x":
+                superficie = pygame.Surface((self.ancho, self.alto), pygame.SRCALPHA)
+            else:
+                superficie = pygame.Surface((self.alto, self.ancho), pygame.SRCALPHA)
+
+            superficie.fill(self.color_respaldo)
+            pygame.draw.rect(superficie, (20, 20, 20), superficie.get_rect(), 2, border_radius=4)
+            return superficie
+
+    def _crear_rect(self):
+        x, y = self.carril.posicion_mundo(self.progreso)
+        return self.image.get_rect(center=(x, y))
+
+    def frente_progreso(self):
+        return self.progreso + self.largo_modelo() / 2
+
+    def cola_progreso(self):
+        return self.progreso - self.largo_modelo() / 2
+
+    def salio_del_mapa(self):
+        return self.cola_progreso() > self.carril.longitud_total
+
+    def ya_cruzo_linea_de_pare(self):
+        """
+        Si el frente del vehículo ya cruzó la línea de pare,
+        ya no debe detenerse aunque el semáforo cambie a rojo.
+        """
+        return self.frente_progreso() >= self.carril.progreso_pare
+
+    def _limite_por_semaforo(self, estado_semaforo):
+        """
+        SOLO se aplica si el vehículo AÚN NO ha cruzado la línea de pare.
+        El vehículo debe detenerse ANTES de la cebra / línea de pare.
+        """
+        if estado_semaforo in ("ROJO", "AMARILLO") and not self.ya_cruzo_linea_de_pare():
+            return self.carril.progreso_pare - self.carril.margen_detencion
+        return None
+
+    def _velocidad_objetivo(self, vehiculo_frente, estado_semaforo):
+        objetivo = self.velocidad_max
+        limite_frente = None
+
+        # 1) límite estricto por semáforo solo si aún no ha cruzado la línea
+        limite_semaforo = self._limite_por_semaforo(estado_semaforo)
+        if limite_semaforo is not None and self.frente_progreso() < limite_semaforo:
+            limite_frente = limite_semaforo
+
+        # 2) límite por vehículo de adelante
+        if vehiculo_frente is not None:
+            limite_vehiculo = vehiculo_frente.cola_progreso() - self.distancia_seguridad
+            if limite_frente is None:
+                limite_frente = limite_vehiculo
+            else:
+                limite_frente = min(limite_frente, limite_vehiculo)
+
+        # 3) calcular velocidad segura
+        if limite_frente is not None:
+            distancia = limite_frente - self.frente_progreso()
+
+            if distancia <= 0:
+                return 0.0, limite_frente
+
+            velocidad_segura = math.sqrt(max(0.0, 2 * self.frenado * distancia))
+            objetivo = min(objetivo, velocidad_segura)
+
+            if estado_semaforo == "AMARILLO":
+                objetivo = min(objetivo, self.velocidad_max * 0.45)
+
+            if estado_semaforo == "ROJO":
+                if distancia < 90:
+                    objetivo = min(objetivo, self.velocidad_max * 0.22)
+                if distancia < 45:
+                    objetivo = min(objetivo, self.velocidad_max * 0.05)
+                if distancia < 12:
+                    objetivo = 0.0
+
+        return objetivo, limite_frente
+
+    def actualizar(self, dt, vehiculo_frente, estado_semaforo):
+        if self.estado != "ACTIVO":
+            self.velocidad_actual = 0.0
+            return
+
+        velocidad_objetivo, limite_frente = self._velocidad_objetivo(vehiculo_frente, estado_semaforo)
+
+        if self.velocidad_actual < velocidad_objetivo:
+            self.velocidad_actual += self.aceleracion * dt
+            if self.velocidad_actual > velocidad_objetivo:
+                self.velocidad_actual = velocidad_objetivo
+        else:
+            self.velocidad_actual -= self.frenado * dt
+            if self.velocidad_actual < velocidad_objetivo:
+                self.velocidad_actual = velocidad_objetivo
+
+        if self.velocidad_actual < 0:
+            self.velocidad_actual = 0.0
+
+        # Detención completa solo ANTES de la línea de pare
+        if estado_semaforo == "ROJO" and not self.ya_cruzo_linea_de_pare():
+            limite_rojo = self.carril.progreso_pare - self.carril.margen_detencion
+            if self.frente_progreso() >= limite_rojo - 1.0:
+                self.velocidad_actual = 0.0
+
+        avance = self.velocidad_actual * dt
+        nuevo_frente = self.frente_progreso() + avance
+
+        # No puede cruzar la línea de pare si aún no la ha cruzado,
+        # ni invadir al vehículo de adelante
+        if limite_frente is not None and nuevo_frente > limite_frente:
+            avance = max(0.0, limite_frente - self.frente_progreso())
+            self.velocidad_actual = 0.0
+
+        self.progreso += avance
+        self.distancia_recorrida += avance
+
+        if self.velocidad_actual < 1.0:
+            self.tiempo_espera += dt
+
+        x, y = self.carril.posicion_mundo(self.progreso)
+        self.rect = self.image.get_rect(center=(x, y))
+
+
+class Camion(Vehiculo):
+    def __init__(self, id_v, carril):
+        sprite = _elegir_sprite_disponible([
+            "camion.png", "camion2.png", "camion3.png"
+        ])
+        super().__init__(
+            id_v=id_v,
+            carril=carril,
+            nombre_img=sprite,
+            ancho=90,
+            alto=40,
+            velocidad_max=88,
+            aceleracion=24,
+            frenado=95,
+            color_respaldo=(255, 140, 0)
+        )
+
+
+class Bus(Vehiculo):
+    def __init__(self, id_v, carril):
+        sprite = _elegir_sprite_disponible(["bus.png"])
+        super().__init__(
+            id_v=id_v,
+            carril=carril,
+            nombre_img=sprite,
+            ancho=84,
+            alto=52,
+            velocidad_max=82,
+            aceleracion=22,
+            frenado=92,
+            color_respaldo=(186, 85, 211)
+        )
