@@ -1,0 +1,12 @@
+*   [33m1bcb9b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge remote-tracking branch 'origin/main'
+[31m|[m[32m\[m  
+[31m|[m * [33m26bf04f[m Delete assets/sprites/x cosa
+* [32m|[m [33mc23be73[m -Se agregó el código de main.py -se modificó requirements.txt en la libreria pygame
+* [32m|[m [33m539d8e8[m -Se agregó el código de main.py
+* [32m|[m [33m60c6bf3[m -Se agregaron las imágenes de los vehiculos
+* [32m|[m [33m5ac8378[m -Se agregó el código de main.py - se agregó código del escenario_3.json
+* [32m|[m [33mc9373a6[m -código del archivo vehiculos.py -código del archivo escenarios.json
+* [32m|[m [33mb8fdc5f[m - archivo requirements.txt con la version de pygame - estructuración de los directorios y paquetes del proyecto
+[32m|[m[32m/[m  
+* [33m3e189e8[m Create x cosa
+* [33m37cd95b[m Create main.py
