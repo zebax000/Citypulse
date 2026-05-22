@@ -1,1 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
+# Entornos virtuales
+venv/
+env/
+.env/
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.egg-info/
+dist/
+build/
