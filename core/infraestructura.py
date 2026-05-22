@@ -1,132 +1,135 @@
 import os
-import random
-from core.infraestructura import cargar_escenarios
-from core.vehiculos import TIPOS_VEHICULO, ESPACIO_SPAWN
+import json
 
 
-class GestorSimulacion:
-    """
-    Orquestador puro. No dibuja nada.
-    Coordina: escenarios, semáforos, spawn, física, métricas.
-    """
+class Via:
+    def __init__(self, x, y, ancho, alto, orientacion, lineas_separacion=None, linea_central=True):
+        self.x = x
+        self.y = y
+        self.ancho = ancho
+        self.alto = alto
+        self.orientacion = orientacion
+        self.lineas_separacion = lineas_separacion or []
+        self.linea_central = linea_central
 
-    def __init__(self):
-        self.escenarios = cargar_escenarios(os.path.join("data", "escenarios"))
-        self.indice     = 0
-        self.escenario  = self.escenarios[self.indice]
 
-        self.pausado       = False
-        self.escala_tiempo = 1.0
-        self._id           = 0   # contador global de IDs de vehículos
+class Cebra:
+    def __init__(self, x, y, ancho, alto):
+        self.x = x
+        self.y = y
+        self.ancho = ancho
+        self.alto = alto
 
-        self.metricas = {
-            "activos":            0,
-            "generados":          0,
-            "salidos":            0,
-            "velocidad_promedio": 0.0,
-            "cola_total":         0,
+
+class LineaPare:
+    def __init__(self, x, y, ancho, alto):
+        self.x = x
+        self.y = y
+        self.ancho = ancho
+        self.alto = alto
+
+
+class Semaforo:
+    def __init__(self, id_s, x, y, grupo, lado="centro"):
+        self.id_s = id_s
+        self.x = x
+        self.y = y
+        self.grupo = grupo
+        self.lado = lado
+
+
+class Carril:
+    def __init__(self, id_carril, eje, coordenada_fija, direccion, inicio, fin,
+                 coord_pare, grupo_semaforo, spawn_intervalo=1.5, mezcla_vehiculos=None,
+                 margen_detencion=14,indice_carril=0):
+
+        self.indice_carril = indice_carril
+        self.id_carril = id_carril
+        self.eje = eje
+        self.coordenada_fija = coordenada_fija
+        self.direccion = direccion
+        self.inicio = inicio
+        self.fin = fin
+        self.coord_pare = coord_pare
+        self.grupo_semaforo = grupo_semaforo
+        self.spawn_intervalo = spawn_intervalo
+        self.mezcla_vehiculos = mezcla_vehiculos or {
+            "automovil": 0.40, "moto": 0.28, "bus": 0.15, "camion": 0.17
         }
 
-    # ── controles de usuario ───────────────────────────────────────────────
+        self.vehiculos = []
+        self.temporizador_spawn = 0.0
 
-    def pausar_reanudar(self):
-        self.pausado = not self.pausado
-
-    def ajustar_escala(self, nueva):
-        self.escala_tiempo = max(0.25, min(4.0, nueva))
-
-    def cambiar_escenario(self, indice):
-        if 0 <= indice < len(self.escenarios):
-            self.indice    = indice
-            self.escenario = self.escenarios[indice]
-            self.escenario.reiniciar()
-            # Resetear métricas al cambiar escenario
-            self.metricas = {k: (0 if isinstance(v, int) else 0.0)
-                             for k, v in self.metricas.items()}
-
-    def recargar_escenarios(self):
-        nombre_actual  = self.escenario.nombre
-        self.escenarios = cargar_escenarios(os.path.join("data", "escenarios"))
-        for i, esc in enumerate(self.escenarios):
-            if esc.nombre == nombre_actual:
-                self.indice    = i
-                self.escenario = esc
-                return
-        self.indice    = 0
-        self.escenario = self.escenarios[0]
-
-    # ── loop principal ─────────────────────────────────────────────────────
-
-    def actualizar(self, dt_real):
-        if self.pausado:
-            return
-        dt = min(dt_real, 0.05) * self.escala_tiempo
-        self.escenario.actualizar(dt)       # avanza el controlador semafórico
-        self._generar_vehiculos(dt)
-        self._actualizar_vehiculos(dt)
-
-    # ── spawn ──────────────────────────────────────────────────────────────
-
-    def _elegir_tipo(self, mezcla):
-        """Selección aleatoria ponderada por probabilidades del carril."""
-        r, acumulado = random.random(), 0.0
-        for tipo, prob in mezcla.items():
-            acumulado += prob
-            if r <= acumulado:
-                return tipo
-        return list(mezcla.keys())[-1]
-
-    def _generar_vehiculos(self, dt):
-        for carril in self.escenario.carriles:
-            carril.temporizador_spawn += dt
-            if carril.temporizador_spawn < carril.spawn_intervalo:
-                continue
-
-            carril.temporizador_spawn = 0.0
-
-            # Verificar espacio: el vehículo con menor progreso debe haber avanzado
-            if carril.vehiculos:
-                ultimo = min(carril.vehiculos, key=lambda v: v.progreso)
-                if ultimo.cola_progreso() < ESPACIO_SPAWN:
-                    continue   # no hay espacio, skip este ciclo
-
-            tipo     = self._elegir_tipo(carril.mezcla_vehiculos)
-            vehiculo = TIPOS_VEHICULO[tipo](f"V{self._id}", carril)
-            self._id += 1
-            carril.vehiculos.append(vehiculo)
-            self.metricas["generados"] += 1
-
-    # ── actualización de vehículos ─────────────────────────────────────────
-
-    def _actualizar_vehiculos(self, dt):
-        velocidades = []
-        cola_total  = 0
-
-        for carril in self.escenario.carriles:
-            estado = self.escenario.estado_semaforo_para_carril(carril)
-
-            # Ordenar: mayor progreso primero (índice 0 = vehículo más adelantado)
-            carril.vehiculos.sort(key=lambda v: v.progreso, reverse=True)
-
-            for i, v in enumerate(carril.vehiculos):
-                frente = carril.vehiculos[i - 1] if i > 0 else None
-                v.actualizar(dt, frente, estado)
-                velocidades.append(v.velocidad_actual)
-
-                # Contabilizar en cola: detenido en rojo antes de la línea
-                if (estado == "ROJO"
-                        and not v.ya_cruzo_linea_de_pare()
-                        and v.velocidad_actual < 1.0):
-                    cola_total += 1
-
-            # Separar salidos ANTES de filtrar para contarlos correctamente
-            salidos = [v for v in carril.vehiculos if v.salio_del_mapa()]
-            self.metricas["salidos"] += len(salidos)
-            carril.vehiculos = [v for v in carril.vehiculos if not v.salio_del_mapa()]
-
-        # Actualizar métricas globales
-        self.metricas["activos"]            = sum(len(c.vehiculos) for c in self.escenario.carriles)
-        self.metricas["cola_total"]         = cola_total
-        self.metricas["velocidad_promedio"] = (
-            sum(velocidades) / len(velocidades) if velocidades else 0.0
+        self.longitud_total = abs(self.fin - self.inicio)
+        coords = coord_pare if isinstance(coord_pare, list) else [coord_pare]
+        self.progreso_pares = sorted(
+            [abs(c - self.inicio) for c in coords]
         )
+        self.progreso_pare = self.progreso_pares[0]  # compatibilidad
+        self.margen_detencion = margen_detencion
+
+    def posicion_mundo(self, progreso):
+        coord = self.inicio + progreso if self.direccion > 0 else self.inicio - progreso
+        if self.eje == "x":
+            return int(coord), int(self.coordenada_fija)
+        return int(self.coordenada_fija), int(coord)
+
+
+class Escenario:
+    def __init__(self, data):
+        from core.controlador import ControladorCruce
+
+        self.nombre = data["nombre"]
+        self.ancho = data.get("ancho", 1280)
+        self.alto = data.get("alto", 720)
+
+        c = data["controlador"]
+        self.controlador = ControladorCruce(c["verde_h"], c["amarillo_h"], c["verde_v"], c["amarillo_v"])
+
+        self.vias = [
+            Via(v["x"], v["y"], v["ancho"], v["alto"], v["orientacion"],
+                v.get("lineas_separacion", []), v.get("linea_central", True))
+            for v in data.get("vias", [])
+        ]
+        self.cebras = [Cebra(z["x"], z["y"], z["ancho"], z["alto"]) for z in data.get("cebras", [])]
+        self.lineas_pare = [LineaPare(lp["x"], lp["y"], lp["ancho"], lp["alto"]) for lp in data.get("lineas_pare", [])]
+        self.semaforos = [
+            Semaforo(s["id"], s["x"], s["y"], s["grupo"], s.get("lado", "centro"))
+            for s in data.get("semaforos", [])
+        ]
+        self.carriles = [
+            Carril(
+                id_carril=c["id_carril"], eje=c["eje"], coordenada_fija=c["coordenada_fija"],
+                direccion=c["direccion"], inicio=c["inicio"], fin=c["fin"],
+                coord_pare=c["coord_pare"], grupo_semaforo=c["grupo_semaforo"],
+                spawn_intervalo=c.get("spawn_intervalo", 1.5),
+                mezcla_vehiculos=c.get("mezcla_vehiculos"),
+                margen_detencion=c.get("margen_detencion", 14)
+            )
+            for c in data.get("carriles", [])
+        ]
+
+    def actualizar(self, dt):
+        self.controlador.actualizar(dt)
+
+    def estado_semaforo_para_carril(self, carril):
+        return self.controlador.estado_grupo(carril.grupo_semaforo)
+
+    def reiniciar(self):
+        for carril in self.carriles:
+            carril.vehiculos.clear()
+            carril.temporizador_spawn = 0.0
+        self.controlador.reiniciar()
+
+
+def cargar_escenarios(carpeta):
+    if not os.path.exists(carpeta):
+        raise FileNotFoundError(f"No existe la carpeta: {carpeta}")
+    archivos = sorted(a for a in os.listdir(carpeta) if a.endswith(".json"))
+    if not archivos:
+        raise RuntimeError("No se encontraron archivos .json en data/escenarios/")
+    escenarios = []
+    for archivo in archivos:
+        with open(os.path.join(carpeta, archivo), encoding="utf-8") as f:
+            escenarios.append(Escenario(json.load(f)))
+    return escenarios
