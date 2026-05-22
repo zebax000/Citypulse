@@ -30,9 +30,19 @@ python main.py
 | 3 | Doble intersección |
 
 ## Arquitectura
-core/ → lógica pura sin pygame
-ui/ → renderizado desacoplado
-data/ → escenarios JSON configurables
+CityPulse/
+├── core/ # Lógica pura — sin pygame
+│ ├── vehiculos.py # Física, personalidad y comportamiento
+│ ├── infraestructura.py # Mundo: vías, carriles, semáforos
+│ ├── simulacion.py # Orquestador de frames
+│ └── controlador.py # Ciclo semafórico
+├── ui/
+│ └── renderer.py # Renderizado pygame desacoplado
+├── data/
+│ └── escenarios/ # Escenarios JSON configurables
+├── assets/
+│ └── sprites/ # Imágenes de vehículos
+└── main.py # Punto de entrada
 
 
 ## Autores
