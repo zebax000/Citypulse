@@ -30,36 +30,28 @@ python main.py
 | 3 | Doble intersección |
 
 ## Arquitectura
-CityPulse/
-├── core/
-│   ├── vehiculos.py        # Física, personalidad y comportamiento de vehículos
-│   ├── infraestructura.py  # Mundo: vías, carriles, semáforos, escenarios
-│   ├── simulacion.py       # Orquestador de frames: spawn, física, métricas
-│   └── controlador.py      # Ciclo semafórico VERDE → AMARILLO → ROJO
-├── ui/
-│   ├── renderer.py         # Renderizado pygame desacoplado
-│   └── debug.py            # Overlay de debug: hitboxes, frente/cola, líneas de pare
-├── data/
-│   └── escenarios/
-│       ├── escenario_1.json  # Intersección simple
-│       ├── escenario_2.json  # Intersección con carriles múltiples
-│       └── escenario_3.json  # Doble intersección con coord_pare múltiple
-├── assets/
-│   └── sprites/
-│       ├── v1.png
-│       ├── v2.png
-│       ├── v3.png
-│       ├── m1.png
-│       ├── m2.png
-│       ├── m3.png
-│       ├── b1.png
-│       ├── c1.png
-│       └── c2.png
-├── main.py                 # Punto de entrada: loop pygame + gestor simulación
-├── .gitignore
-├── README.md
-└── requirements.txt
+| Capa | Archivo | Responsabilidad |
+|------|---------|-----------------|
+| `core/` | `vehiculos.py` | Física, personalidad y comportamiento de vehículos |
+| `core/` | `infraestructura.py` | Mundo: vías, carriles, semáforos, escenarios |
+| `core/` | `simulacion.py` | Orquestador de frames: spawn, física, métricas |
+| `core/` | `controlador.py` | Ciclo semafórico VERDE → AMARILLO → ROJO |
+| `ui/` | `renderer.py` | Renderizado pygame desacoplado |
+| `ui/` | `debug.py` | Overlay de debug: hitboxes, frente/cola, líneas de pare |
+| `data/` | `escenario_1.json` | Intersección simple |
+| `data/` | `escenario_2.json` | Intersección con carriles múltiples |
+| `data/` | `escenario_3.json` | Doble intersección con coord_pare múltiple |
+| raíz | `main.py` | Punto de entrada: loop pygame + gestor simulación |
 
+
+| Tecla | Acción |
+|-------|--------|
+| `1` `2` `3` | Cambiar escenario |
+| `Space` | Pausar / reanudar |
+| `+` / `-` | Acelerar / reducir velocidad de simulación |
+| `R` | Recargar escenario actual |
+| `D` | Activar / desactivar modo debug |
+| `ESC` | Salir 
 
 ## Autores
 - Sebastian Velasquez
