@@ -1,3 +1,4 @@
+#Dibuja todo en pygame: vías, cebras, líneas de pare, semáforos con rotación por eje, vehículos con sprites, contadores de tiempo
 import pygame
 
 # ── paleta ────────────────────────────────────────────────────────────────
