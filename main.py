@@ -1,3 +1,4 @@
+#Main para el correcto funcionamiento: 
 import pygame
 import sys
 from core.simulacion import GestorSimulacion
