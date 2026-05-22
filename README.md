@@ -30,3 +30,16 @@ python main.py
 | 3 | Doble intersección |
 
 ## Arquitectura
+core/ → lógica pura sin pygame
+ui/ → renderizado desacoplado
+data/ → escenarios JSON configurables
+
+
+## Autores
+- Sebastian Velasquez
+- juan camilo holguin
+- Cesar ramirez
+
+Universidadd de medellin
+Programacion Orientada a Objetos (POO)
+  
