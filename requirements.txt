@@ -1,1 +1,2 @@
-pygame
+Python 3.10+
+pygame 2.5+
