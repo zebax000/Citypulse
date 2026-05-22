@@ -44,6 +44,7 @@ python main.py
 | raíz | `main.py` | Punto de entrada: loop pygame + gestor simulación |
 
 
+## Teclas
 | Tecla | Acción |
 |-------|--------|
 | `1` `2` `3` | Cambiar escenario |
