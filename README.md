@@ -31,18 +31,34 @@ python main.py
 
 ## Arquitectura
 CityPulse/
-├── core/ # Lógica pura — sin pygame
-│ ├── vehiculos.py # Física, personalidad y comportamiento
-│ ├── infraestructura.py # Mundo: vías, carriles, semáforos
-│ ├── simulacion.py # Orquestador de frames
-│ └── controlador.py # Ciclo semafórico
+├── core/
+│   ├── vehiculos.py        # Física, personalidad y comportamiento de vehículos
+│   ├── infraestructura.py  # Mundo: vías, carriles, semáforos, escenarios
+│   ├── simulacion.py       # Orquestador de frames: spawn, física, métricas
+│   └── controlador.py      # Ciclo semafórico VERDE → AMARILLO → ROJO
 ├── ui/
-│ └── renderer.py # Renderizado pygame desacoplado
+│   ├── renderer.py         # Renderizado pygame desacoplado
+│   └── debug.py            # Overlay de debug: hitboxes, frente/cola, líneas de pare
 ├── data/
-│ └── escenarios/ # Escenarios JSON configurables
+│   └── escenarios/
+│       ├── escenario_1.json  # Intersección simple
+│       ├── escenario_2.json  # Intersección con carriles múltiples
+│       └── escenario_3.json  # Doble intersección con coord_pare múltiple
 ├── assets/
-│ └── sprites/ # Imágenes de vehículos
-└── main.py # Punto de entrada
+│   └── sprites/
+│       ├── v1.png
+│       ├── v2.png
+│       ├── v3.png
+│       ├── m1.png
+│       ├── m2.png
+│       ├── m3.png
+│       ├── b1.png
+│       ├── c1.png
+│       └── c2.png
+├── main.py                 # Punto de entrada: loop pygame + gestor simulación
+├── .gitignore
+├── README.md
+└── requirements.txt
 
 
 ## Autores
