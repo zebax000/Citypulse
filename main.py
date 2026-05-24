@@ -12,6 +12,12 @@ class App:
 
     def __init__(self):
         pygame.init()
+
+        pygame.mixer.init()
+        pygame.mixer.music.load("assets/audio/trafico.ogg")
+        pygame.mixer.music.set_volume(0.20)  # 20%, para que sea sutil
+        pygame.mixer.music.play(-1)  # bucle infinito
+
         pygame.display.set_caption("CityPulse – Simulador de Tráfico Vehicular Urbano")
         self.ventana = pygame.display.set_mode((self.ANCHO_SIM + self.ANCHO_PANEL, self.ALTO))
         self.superficie_sim = pygame.Surface((self.ANCHO_SIM, self.ALTO))
