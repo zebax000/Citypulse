@@ -4,7 +4,7 @@ import sys
 from core.simulacion import GestorSimulacion
 from ui import renderer
 
-DEBUG = True
+DEBUG = False
 class App:
     ANCHO_SIM   = 1280
     ALTO        = 720
@@ -12,7 +12,7 @@ class App:
 
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption("CityPulse – Simulador de Tráfico Urbano")
+        pygame.display.set_caption("CityPulse – Simulador de Tráfico Vehicular Urbano")
         self.ventana = pygame.display.set_mode((self.ANCHO_SIM + self.ANCHO_PANEL, self.ALTO))
         self.superficie_sim = pygame.Surface((self.ANCHO_SIM, self.ALTO))
         self.reloj = pygame.time.Clock()

@@ -65,8 +65,14 @@ def _dibujar_via(pantalla, via):
                 y += 40
 
 
-def _dibujar_cebra(pantalla, cebra):
-    franja, espacio = 8, 6
+def _dibujar_cebra(pantalla: pygame.Surface, cebra) -> None:
+    #acá la base = tamaño de la cebra (ancho o alto) y la franja = proporcional (8% del tamaño)
+    # el espacio = proporcional (6%) Y con max(4, ...) evitamos que quede demasiado delgado.
+    base = min(cebra.ancho, cebra.alto)
+
+    franja = max(4, int(base * 0.08))
+    espacio = max(4, int(base * 0.06))
+
     if cebra.ancho >= cebra.alto:
         xx = cebra.x
         while xx < cebra.x + cebra.ancho:
