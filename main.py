@@ -11,8 +11,18 @@ class App:
     ANCHO_PANEL = 320
 
     def __init__(self):
-        pygame.init()
 
+        pygame.init()
+        #logo favicon
+        icono = pygame.image.load("assets/ui/citypulse_logo.png")
+        pygame.display.set_icon(icono)
+
+        pygame.display.set_caption("CityPulse – Simulador de Tráfico Urbano")
+        self.ventana = pygame.display.set_mode((self.ANCHO_SIM + self.ANCHO_PANEL, self.ALTO))
+        self.superficie_sim = pygame.Surface((self.ANCHO_SIM, self.ALTO))
+        self.reloj = pygame.time.Clock()
+
+        #carga de ssonido
         pygame.mixer.init()
         pygame.mixer.music.load("assets/audio/trafico.ogg")
         pygame.mixer.music.set_volume(0.20)  # 20%, para que sea sutil

@@ -1,6 +1,8 @@
 # core/renderer.py
 import math
 import pygame
+import os
+
 
 COLOR_FONDO          = (62,  135,  76)
 COLOR_VIA            = (45,   45,  45)
@@ -19,8 +21,11 @@ _APAGADO       = (70, 70, 70)
 _SEM_GAP       = 8
 _SEM_TEXTO_GAP = 7
 
-_fuente_semaforo = None
-_fuente_debug_s  = None
+_LOGO_BASE = None
+_RUTA_LOGO = os.path.join("assets", "ui", "citypulse_logo.png")
+
+
+_fuente_semaforo: pygame.font.Font | None = None
 
 
 def _get_fuente_semaforo():
@@ -28,6 +33,69 @@ def _get_fuente_semaforo():
     if _fuente_semaforo is None:
         _fuente_semaforo = pygame.font.SysFont("consolas", 16, bold=True)
     return _fuente_semaforo
+
+def _obtener_logo_base():
+    global _LOGO_BASE
+    if _LOGO_BASE is None:
+        try:
+            _LOGO_BASE = pygame.image.load(_RUTA_LOGO).convert_alpha()
+        except Exception:
+            _LOGO_BASE = None
+    return _LOGO_BASE
+
+def _dibujar_logo_marca_agua(pantalla: pygame.Surface, escenario) -> None:
+    logo_base = _obtener_logo_base()
+    if logo_base is None:
+        return
+
+    vias_h = [v for v in escenario.vias if v.orientacion == "horizontal"]
+    vias_v = [v for v in escenario.vias if v.orientacion == "vertical"]
+
+    for via_h in vias_h:
+        for via_v in vias_v:
+            # Detectar si realmente se cruzan
+            if (
+                via_h.y < via_v.y + via_v.alto
+                and via_h.y + via_h.alto > via_v.y
+                and via_v.x < via_h.x + via_h.ancho
+                and via_v.x + via_v.ancho > via_h.x
+            ):
+                # Rectángulo real de la intersección
+                x1 = max(via_h.x, via_v.x)
+                y1 = max(via_h.y, via_v.y)
+                x2 = min(via_h.x + via_h.ancho, via_v.x + via_v.ancho)
+                y2 = min(via_h.y + via_h.alto, via_v.y + via_v.alto)
+
+                ancho_cruce = x2 - x1
+                alto_cruce = y2 - y1
+
+                if ancho_cruce <= 0 or alto_cruce <= 0:
+                    continue
+
+                # Centro del cruce
+                cx = x1 + ancho_cruce // 2
+                cy = y1 + alto_cruce // 2
+
+                # Escalar proporcionalmente al tamaño del cruce
+                lado_base = int(min(ancho_cruce, alto_cruce) * 0.95)
+                if lado_base <= 0:
+                    continue
+
+                proporcion = logo_base.get_height() / logo_base.get_width()
+                ancho_logo = lado_base
+                alto_logo = max(1, int(lado_base * proporcion))
+
+                logo = pygame.transform.smoothscale(
+                    logo_base,
+                    (ancho_logo, alto_logo)
+                ).convert_alpha()
+
+                # Marca de agua: mantener color, bajar opacidad
+                logo = logo.copy()
+                logo.set_alpha(100)
+
+                rect = logo.get_rect(center=(cx, cy))
+                pantalla.blit(logo, rect)
 
 
 # ── infraestructura ────────────────────────────────────────────────────────
@@ -308,6 +376,9 @@ def dibujar_escenario(pantalla, escenario):
     pantalla.fill(COLOR_FONDO)
     for via in escenario.vias:
         _dibujar_via(pantalla, via, escenario)
+
+    _dibujar_logo_marca_agua(pantalla, escenario)
+
     for cebra in escenario.cebras:
         _dibujar_cebra(pantalla, cebra)
     for lp in escenario.lineas_pare:
