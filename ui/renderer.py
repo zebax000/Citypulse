@@ -30,40 +30,155 @@ def _get_fuente_semaforo():
     return _fuente_semaforo
 
 
-def _get_fuente_debug():
-    global _fuente_debug_s
-    if _fuente_debug_s is None:
-        _fuente_debug_s = pygame.font.SysFont("consolas", 9)
-    return _fuente_debug_s
+# ── infraestructura ────────────────────────────────────────────────────────
+#///
+def _intervalos_cruce(via, escenario, margen=2):
+    """
+    Devuelve intervalos [inicio, fin] donde NO se deben dibujar líneas
+    (zona de cruce + cebras + líneas de pare), calculados a partir de lineas_pare.
+    Funciona para una o varias intersecciones.
+    """
+    bloqueos = []
+
+    if via.orientacion == "horizontal":
+        # Tomar SOLO líneas de pare verticales que crucen/rocen esta vía
+        pares = [
+            lp for lp in escenario.lineas_pare
+            if lp.alto > lp.ancho and (via.y < lp.y + lp.alto and via.y + via.alto > lp.y)
+        ]
+        pares.sort(key=lambda lp: lp.x)
+
+        # Emparejar de 2 en 2: izquierda/derecha de cada intersección
+        for i in range(0, len(pares) - 1, 2):
+            izq = pares[i]
+            der = pares[i + 1]
+            bloqueos.append((izq.x - margen, der.x + der.ancho + margen))
+
+    else:  # vertical
+        # Tomar SOLO líneas de pare horizontales que crucen/rocen esta vía
+        pares = [
+            lp for lp in escenario.lineas_pare
+            if lp.ancho > lp.alto and (via.x < lp.x + lp.ancho and via.x + via.ancho > lp.x)
+        ]
+        pares.sort(key=lambda lp: lp.y)
+
+        # Emparejar de 2 en 2: superior/inferior de cada intersección
+        for i in range(0, len(pares) - 1, 2):
+            sup = pares[i]
+            inf = pares[i + 1]
+            bloqueos.append((sup.y - margen, inf.y + inf.alto + margen))
+
+    return bloqueos
 
 
-def _dibujar_via(pantalla, via):
+def _dibujar_segmentos_linea(pantalla, color, via, pos_fija, bloqueos, punteada=False, ancho=2, largo=12, espacio=8):
+    """
+    Dibuja una línea (horizontal o vertical) en varios tramos,
+    evitando los intervalos bloqueados del cruce.
+    """
+    def _linea_punteada(inicio, fin):
+        import math
+        x1, y1 = inicio
+        x2, y2 = fin
+        dx = x2 - x1
+        dy = y2 - y1
+        dist = math.hypot(dx, dy)
+        if dist == 0:
+            return
+
+        dx /= dist
+        dy /= dist
+        dibujar = True
+        avance = 0
+
+        while avance < dist:
+            if dibujar:
+                fin_seg = min(avance + largo, dist)
+                xi = x1 + dx * avance
+                yi = y1 + dy * avance
+                xf = x1 + dx * fin_seg
+                yf = y1 + dy * fin_seg
+                pygame.draw.line(pantalla, color, (xi, yi), (xf, yf), ancho)
+
+            avance += largo if dibujar else espacio
+            dibujar = not dibujar
+
+    if via.orientacion == "horizontal":
+        ini = via.x
+        fin = via.x + via.ancho
+        cursor = ini
+
+        for a, b in bloqueos:
+            if a > cursor:
+                if punteada:
+                    _linea_punteada((cursor, pos_fija), (a, pos_fija))
+                else:
+                    pygame.draw.line(pantalla, color, (cursor, pos_fija), (a, pos_fija), ancho)
+            cursor = max(cursor, b)
+
+        if cursor < fin:
+            if punteada:
+                _linea_punteada((cursor, pos_fija), (fin, pos_fija))
+            else:
+                pygame.draw.line(pantalla, color, (cursor, pos_fija), (fin, pos_fija), ancho)
+
+    else:  # vertical
+        ini = via.y
+        fin = via.y + via.alto
+        cursor = ini
+
+        for a, b in bloqueos:
+            if a > cursor:
+                if punteada:
+                    _linea_punteada((pos_fija, cursor), (pos_fija, a))
+                else:
+                    pygame.draw.line(pantalla, color, (pos_fija, cursor), (pos_fija, a), ancho)
+            cursor = max(cursor, b)
+
+        if cursor < fin:
+            if punteada:
+                _linea_punteada((pos_fija, cursor), (pos_fija, fin))
+            else:
+                pygame.draw.line(pantalla, color, (pos_fija, cursor), (pos_fija, fin), ancho)
+#///
+def _dibujar_via(pantalla: pygame.Surface, via, escenario) -> None:
     rect = pygame.Rect(via.x, via.y, via.ancho, via.alto)
     pygame.draw.rect(pantalla, COLOR_VIA,   rect)
     pygame.draw.rect(pantalla, COLOR_BORDE, rect, 2)
+
+    bloqueos = _intervalos_cruce(via, escenario, margen=2)
+
+    # Línea central amarilla
     if via.linea_central:
         if via.orientacion == "horizontal":
             cy = via.y + via.alto // 2
-            pygame.draw.line(pantalla, COLOR_LINEA_AMARILLA,
-                             (via.x, cy), (via.x + via.ancho, cy), 3)
+            _dibujar_segmentos_linea(
+                pantalla, COLOR_LINEA_AMARILLA, via, cy, bloqueos,
+                punteada=False, ancho=3
+            )
         else:
             cx = via.x + via.ancho // 2
-            pygame.draw.line(pantalla, COLOR_LINEA_AMARILLA,
-                             (cx, via.y), (cx, via.y + via.alto), 3)
-    for linea in via.lineas_separacion:
-        if linea["orientacion"] == "horizontal":
-            y = linea["pos"]
-            x = via.x + 10
-            while x < via.x + via.ancho - 10:
-                pygame.draw.line(pantalla, COLOR_LINEA_BLANCA, (x, y), (x + 24, y), 2)
-                x += 40
-        else:
-            x = linea["pos"]
-            y = via.y + 10
-            while y < via.y + via.alto - 10:
-                pygame.draw.line(pantalla, COLOR_LINEA_BLANCA, (x, y), (x, y + 24), 2)
-                y += 40
+            _dibujar_segmentos_linea(
+                pantalla, COLOR_LINEA_AMARILLA, via, cx, bloqueos,
+                punteada=False, ancho=3
+            )
 
+    # Líneas separadoras blancas discontinuas
+    for linea in via.lineas_separacion:
+        if linea["orientacion"] == "horizontal" and via.orientacion == "horizontal":
+            y_linea = linea["pos"]
+            _dibujar_segmentos_linea(
+                pantalla, COLOR_LINEA_BLANCA, via, y_linea, bloqueos,
+                punteada=True, ancho=2
+            )
+
+        elif linea["orientacion"] == "vertical" and via.orientacion == "vertical":
+            x_linea = linea["pos"]
+            _dibujar_segmentos_linea(
+                pantalla, COLOR_LINEA_BLANCA, via, x_linea, bloqueos,
+                punteada=True, ancho=2
+            )
+            #//
 
 def _dibujar_cebra(pantalla: pygame.Surface, cebra) -> None:
     #acá la base = tamaño de la cebra (ancho o alto) y la franja = proporcional (8% del tamaño)
@@ -192,7 +307,7 @@ def _render_vehiculo_surface(v, carril):
 def dibujar_escenario(pantalla, escenario):
     pantalla.fill(COLOR_FONDO)
     for via in escenario.vias:
-        _dibujar_via(pantalla, via)
+        _dibujar_via(pantalla, via, escenario)
     for cebra in escenario.cebras:
         _dibujar_cebra(pantalla, cebra)
     for lp in escenario.lineas_pare:
