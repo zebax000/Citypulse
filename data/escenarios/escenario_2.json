@@ -93,7 +93,7 @@
     },
     {
       "x": 430,
-      "y": 185,
+      "y": 188,
       "ancho": 300,
       "alto": 20
     },
@@ -119,23 +119,23 @@
     },
     {
       "x": 430,
-      "y": 175,
+      "y": 176,
       "ancho": 300,
       "alto": 8
     },
     {
       "x": 430,
-      "y": 530,
+      "y": 534,
       "ancho": 300,
       "alto": 8
     }
   ],
 "semaforos": [
-  { "id": "H1", "x": 330, "y": 210, "grupo": "H", "lado": "arriba"    },
-  { "id": "V1", "x": 425, "y": 155, "grupo": "V", "lado": "izquierda" },
+  { "id": "H1", "x": 360, "y": 210, "grupo": "H", "lado": "arriba"    },
+  { "id": "V1", "x": 430, "y": 140, "grupo": "V", "lado": "izquierda" },
 
-  { "id": "H2", "x": 820, "y": 510, "grupo": "H", "lado": "abajo"     },
-  { "id": "V2", "x": 740, "y": 580, "grupo": "V", "lado": "derecha"   }
+  { "id": "H2", "x": 795, "y": 510, "grupo": "H", "lado": "abajo"     },
+  { "id": "V2", "x": 7302, "y": 580, "grupo": "V", "lado": "derecha"   }
 ],
   "carriles": [
     {
