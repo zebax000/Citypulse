@@ -218,6 +218,13 @@ Un `Controlador` no tiene identidad fuera del `Escenario` al que regula: sus fas
 
 `GestorEventos` opera exclusivamente a través de la referencia al `GestorSimulacion` que le pasa como parámetro en cada `actualizar(gestor, dt)` y `toggle(nombre, gestor)`. No tiene estado útil ni razón de existir fuera de un gestor activo. La composición expresa que el gestor es el único dueño de este componente y que sus ciclos de vida están irremediablemente ligados. Modelarlo como agregación abriría la puerta semántica de compartir el mismo `GestorEventos` entre múltiples gestores, lo que es imposible por diseño ya que el gestor de eventos modifica directamente los carriles del escenario activo.
 
+---
+
+### Composición: `GestorCarrera` → `VehiculoCarrera`
+
+`v1` y `v2` son creados y controlados exclusivamente por `GestorCarrera`. Su estado (`vueltas`, `eliminado`, `explosion[]`) solo tiene sentido mientras la carrera existe. No hay ningún mecanismo por el que un `VehiculoCarrera` pueda existir o ser referenciado fuera del `GestorCarrera`. Representarlo como agregación sugeriría que los vehículos de carrera son objetos independientes con vida propia, lo que contradice la lógica de `explotar()` y el atributo `ganador` que apunta a uno de los dos vehículos propios.
+
+---
 
 ### Agregación: `Escenario` → `Carril`
 
