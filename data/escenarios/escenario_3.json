@@ -64,9 +64,10 @@
       ]
     }
   ],
+
   "cebras": [
     {
-      "x": 295,
+      "x": 300,
       "y": 310,
       "ancho": 20,
       "alto": 100
@@ -79,18 +80,18 @@
     },
     {
       "x": 320,
-      "y": 285,
+      "y": 288,
       "ancho": 100,
       "alto": 20
     },
     {
       "x": 320,
-      "y": 415,
+      "y": 412,
       "ancho": 100,
       "alto": 20
     },
     {
-      "x": 835,
+      "x": 840,
       "y": 310,
       "ancho": 20,
       "alto": 100
@@ -103,161 +104,144 @@
     },
     {
       "x": 860,
-      "y": 285,
+      "y": 288,
       "ancho": 100,
       "alto": 20
     },
     {
       "x": 860,
-      "y": 415,
+      "y": 412,
       "ancho": 100,
       "alto": 20
     }
   ],
   "lineas_pare": [
     {
-      "x": 280,
+      "x": 288,
       "y": 310,
       "ancho": 8,
       "alto": 100
     },
     {
-      "x": 435,
+      "x": 444,
       "y": 310,
       "ancho": 8,
       "alto": 100
     },
     {
       "x": 320,
-      "y": 270,
+      "y": 276,
       "ancho": 100,
       "alto": 8
     },
     {
       "x": 320,
-      "y": 430,
+      "y": 436,
       "ancho": 100,
       "alto": 8
     },
     {
-      "x": 820,
+      "x": 828,
       "y": 310,
       "ancho": 8,
       "alto": 100
     },
     {
-      "x": 975,
+      "x": 984,
       "y": 310,
       "ancho": 8,
       "alto": 100
     },
     {
       "x": 860,
-      "y": 270,
+      "y": 276,
       "ancho": 100,
       "alto": 8
     },
     {
       "x": 860,
-      "y": 430,
+      "y": 435,
       "ancho": 100,
       "alto": 8
     }
   ],
-  "semaforos": [
+"semaforos": [
+  { "id": "HA1",  "x": 250,  "y": 310, "grupo": "H", "lado": "arriba"    },
+  { "id": "VA1",  "x": 320,  "y": 240, "grupo": "V", "lado": "izquierda" },
+  { "id": "HA2",  "x": 490,  "y": 410, "grupo": "H", "lado": "abajo"     },
+  { "id": "VA2",  "x": 420,  "y": 475, "grupo": "V", "lado": "derecha"   },
+
+  { "id": "HB1",  "x": 790,  "y": 310, "grupo": "H", "lado": "arriba"    },
+  { "id": "VB1",  "x": 860,  "y": 240, "grupo": "V", "lado": "izquierda" },
+  { "id": "HB2",  "x": 1030, "y": 410, "grupo": "H", "lado": "abajo"     },
+  { "id": "VB2",  "x": 960,  "y": 475, "grupo": "V", "lado": "derecha"   }
+],
+  "carriles": [
     {
-      "id": "HA1",
-      "x": 250,
-      "y": 310,
-      "grupo": "H",
-      "lado": "arriba"
+      "id_carril": "E1",
+      "eje": "x",
+      "coordenada_fija": 335,
+      "direccion": 1,
+      "inicio": -100,
+      "fin": 1380,
+      "coord_pare": [280, 820],
+      "grupo_semaforo": "H",
+      "spawn_intervalo": 1.5
     },
     {
-      "id": "VA1",
-      "x": 320,
-      "y": 260,
-      "grupo": "V",
-      "lado": "izquierda"
+  "id_carril": "W1",
+  "eje": "x",
+  "coordenada_fija": 385,
+  "direccion": -1,
+  "inicio": 1380,
+  "fin": -100,
+  "coord_pare": [975, 435],
+  "grupo_semaforo": "H",
+  "spawn_intervalo": 1.5
+},
+    {
+      "id_carril": "SA1",
+      "eje": "y",
+      "coordenada_fija": 345,
+      "direccion": 1,
+      "inicio": -100,
+      "fin": 820,
+      "coord_pare": 270,
+      "grupo_semaforo": "V",
+      "spawn_intervalo": 1.8
     },
     {
-      "id": "HA2",
-      "x": 505,
-      "y": 410,
-      "grupo": "H",
-      "lado": "abajo"
+      "id_carril": "NA1",
+      "eje": "y",
+      "coordenada_fija": 395,
+      "direccion": -1,
+      "inicio": 820,
+      "fin": -100,
+      "coord_pare": 430,
+      "grupo_semaforo": "V",
+      "spawn_intervalo": 1.8
     },
     {
-      "id": "VA2",
-      "x": 420,
-      "y": 460,
-      "grupo": "V",
-      "lado": "derecha"
+      "id_carril": "SB1",
+      "eje": "y",
+      "coordenada_fija": 885,
+      "direccion": 1,
+      "inicio": -100,
+      "fin": 820,
+      "coord_pare": 270,
+      "grupo_semaforo": "V",
+      "spawn_intervalo": 1.8
     },
     {
-      "id": "HB1",
-      "x": 790,
-      "y": 310,
-      "grupo": "H",
-      "lado": "arriba"
-    },
-    {
-      "id": "VB1",
-      "x": 860,
-      "y": 260,
-      "grupo": "V",
-      "lado": "izquierda"
-    },
-    {
-      "id": "HB2",
-      "x": 1050,
-      "y": 410,
-      "grupo": "H",
-      "lado": "abajo"
-    },
-    {
-      "id": "VB2",
-      "x": 960,
-      "y": 460,
-      "grupo": "V",
-      "lado": "derecha"
+      "id_carril": "NB1",
+      "eje": "y",
+      "coordenada_fija": 935,
+      "direccion": -1,
+      "inicio": 820,
+      "fin": -100,
+      "coord_pare": 430,
+      "grupo_semaforo": "V",
+      "spawn_intervalo": 1.8
     }
-  ],
-"carriles": [
-  {
-    "id_carril": "E1", "eje": "x", "coordenada_fija": 335,
-    "direccion": 1, "inicio": -100, "fin": 1380,
-    "coord_pare": [280, 820], "grupo_semaforo": "H", "spawn_intervalo": 1.5,
-    "mezcla_vehiculos": {"automovil": 0.45, "moto": 0.28, "bus": 0.13, "camion": 0.12, "ambulancia": 0.02, "policia": 0.02}
-  },
-  {
-    "id_carril": "W1", "eje": "x", "coordenada_fija": 385,
-    "direccion": -1, "inicio": 1380, "fin": -100,
-    "coord_pare": [975, 435], "grupo_semaforo": "H", "spawn_intervalo": 1.5,
-    "mezcla_vehiculos": {"automovil": 0.45, "moto": 0.28, "bus": 0.13, "camion": 0.12, "ambulancia": 0.02, "policia": 0.02}
-  },
-  {
-    "id_carril": "SA1", "eje": "y", "coordenada_fija": 345,
-    "direccion": 1, "inicio": -100, "fin": 820,
-    "coord_pare": 270, "grupo_semaforo": "V", "spawn_intervalo": 1.8,
-    "mezcla_vehiculos": {"automovil": 0.45, "moto": 0.28, "bus": 0.13, "camion": 0.12, "ambulancia": 0.02, "policia": 0.02}
-  },
-  {
-    "id_carril": "NA1", "eje": "y", "coordenada_fija": 395,
-    "direccion": -1, "inicio": 820, "fin": -100,
-    "coord_pare": 430, "grupo_semaforo": "V", "spawn_intervalo": 1.8,
-    "mezcla_vehiculos": {"automovil": 0.45, "moto": 0.28, "bus": 0.13, "camion": 0.12, "ambulancia": 0.02, "policia": 0.02}
-  },
-  {
-    "id_carril": "SB1", "eje": "y", "coordenada_fija": 885,
-    "direccion": 1, "inicio": -100, "fin": 820,
-    "coord_pare": 270, "grupo_semaforo": "V", "spawn_intervalo": 1.8,
-    "mezcla_vehiculos": {"automovil": 0.45, "moto": 0.28, "bus": 0.13, "camion": 0.12, "ambulancia": 0.02, "policia": 0.02}
-  },
-  {
-    "id_carril": "NB1", "eje": "y", "coordenada_fija": 935,
-    "direccion": -1, "inicio": 820, "fin": -100,
-    "coord_pare": 430, "grupo_semaforo": "V", "spawn_intervalo": 1.8,
-    "mezcla_vehiculos": {"automovil": 0.45, "moto": 0.28, "bus": 0.13, "camion": 0.12, "ambulancia": 0.02, "policia": 0.02}
-  }
-]
+  ]
 }
