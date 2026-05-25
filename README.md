@@ -20,7 +20,7 @@ Simulador de tráfico urbano orientado a objetos desarrollado en Python + pygame
 
 ## Instalación
 ```bash
-git clone https://github.com/tuusuario/CityPulse.git
+git clone https://github.com/zebax000/CityPulse.git
 cd CityPulse
 pip install -r requirements.txt
 python main.py
