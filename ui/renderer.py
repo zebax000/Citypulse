@@ -337,7 +337,9 @@ def dibujar_escenario(pantalla: pygame.Surface, escenario) -> None:
             pantalla.blit(t1, (cx - 52, cy - 10))
             pantalla.blit(t2, (cx - 52 + t1.get_width(), cy - 10))
             _dibujar_logo_interseccion(pantalla, escenario)
-    def dibujar_vehiculos(pantalla, escenario, gestor_eventos=None):
+
+
+def dibujar_vehiculos(pantalla, escenario, gestor_eventos=None):
     global _tiempo_total
     _tiempo_total += 0.016
 
@@ -885,6 +887,4 @@ def dibujar_nombre_eventos(pantalla, gestor_eventos, fuente):
         pantalla.blit(bg,   (8,  py - 2))
         pantalla.blit(surf, (13, py))
         py += surf.get_height() + 6
-
-
 
