@@ -230,6 +230,7 @@ class GestorSimulacion:
             "velocidad_promedio": 0.0, "cola_total": 0,
             "tiempo_espera_promedio": 0.0, "carriles_congestionados": 0,
             "prioritarios_activos": 0, "prioritarios_bloqueados": 0,
+            "sugerencias_congestion": [],
         }
 
     def pausar_reanudar(self):
@@ -274,6 +275,12 @@ class GestorSimulacion:
         with debug_timer("lane_change_intent"): self._procesar_cambios_carril()
         with debug_timer("fisica"):          self._actualizar_vehiculos(dt)
         with debug_timer("metricas"):        self._calcular_metricas_carriles()
+        debug_validar_escenario(self.escenario, self._frame_n)
+        debug_finalizar_frame()
+        with debug_timer("metricas"):
+            self._calcular_metricas_carriles()
+            if self._frame_n % 180 == 0:
+                self.analizar_congestion()
         debug_validar_escenario(self.escenario, self._frame_n)
         debug_finalizar_frame()
 
@@ -367,7 +374,6 @@ class GestorSimulacion:
                         self._canal_sirena = None
 
             self.metricas["salidos"] += len(salidos)
-            self.metricas["salidos"] += len(salidos)
             carril.vehiculos = [v for v in carril.vehiculos if v not in salidos]
         self.metricas["activos"]            = sum(len(c.vehiculos) for c in self.escenario.carriles)
         self.metricas["cola_total"]         = cola_total
@@ -389,6 +395,48 @@ class GestorSimulacion:
         self.metricas["prioritarios_activos"]     = prioritarios_activos
         self.metricas["prioritarios_bloqueados"]  = prioritarios_bloqueados
 
+    def analizar_congestion(self):
+        sugerencias = []
+        for carril in self.escenario.carriles:
+            nivel = carril.nivel_congestion()
+            if nivel >= 0.10:
+                if carril.vecinos:
+                    vecino_libre = min(carril.vecinos, key=lambda v: v.nivel_congestion())
+                    nv = vecino_libre.nivel_congestion()
+                    if nv < nivel - 0.2:
+                        sugerencias.append({
+                            "carril": carril.id_carril,
+                            "nivel": round(nivel, 2),
+                            "accion": f"Cambiar al carril {vecino_libre.id_carril} ({int(nv*100)}% ocupado)",
+                            "prioridad": "ALTA" if nivel >= 0.85 else "MEDIA"
+                        })
+                    else:
+                        sugerencias.append({
+                            "carril": carril.id_carril,
+                            "nivel": round(nivel, 2),
+                            "accion": "Reducir frecuencia de spawn",
+                            "prioridad": "ALTA" if nivel >= 0.85 else "MEDIA"
+                        })
+                else:
+                    # sin vecinos: sugerencias variadas según nivel
+                    if nivel >= 0.85:
+                        accion = "Aumentar tiempo verde del semaforo"
+                    elif nivel >= 0.65:
+                        accion = "Reducir frecuencia de spawn"
+                    elif self.metricas["cola_total"] > 5:
+                        accion = "Cola larga: revisar ciclo semaforico"
+                    else:
+                        accion = "Monitorear: congestion moderada"
+                    sugerencias.append({
+                        "carril": carril.id_carril,
+                        "nivel": round(nivel, 2),
+                        "accion": accion,
+                        "prioridad": "ALTA" if nivel >= 0.85 else "MEDIA"
+                    })
+
+        sugerencias.sort(key=lambda s: s["nivel"], reverse=True)
+        self.metricas["sugerencias_congestion"] = sugerencias
+        return sugerencias
 
 # ── modo carrera ───────────────────────────────────────────────────────────
 import math as _math, random as _random
