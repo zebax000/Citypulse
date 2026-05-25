@@ -887,4 +887,3 @@ def dibujar_nombre_eventos(pantalla, gestor_eventos, fuente):
         pantalla.blit(bg,   (8,  py - 2))
         pantalla.blit(surf, (13, py))
         py += surf.get_height() + 6
-
