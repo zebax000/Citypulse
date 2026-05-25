@@ -56,7 +56,6 @@ python main.py
 | `I` | Niebla | Overlay semitransparente, conductores más cautelosos |
 | `U` | Accidente | Bloquea un carril aleatorio |
 | `O` | Noche | Oscurece la escena, activa faros de vehículos |
-| `F` | Fiesta | Solo policías, zigzag y luces de colores |
 
 ## Teclas generales
 | Tecla | Acción |
