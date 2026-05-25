@@ -4,6 +4,7 @@ import math
 import random
 import json
 import time
+import pygame
 import collections
 from core.infraestructura import cargar_escenarios
 from core.eventos import GestorEventos
@@ -211,6 +212,17 @@ class GestorSimulacion:
         self.pausado        = False
         self.escala_tiempo  = 1.0
         self._id            = 0
+        self._sonidos = {}
+        for nombre, archivo in {
+            "arranque": "assets/audio/arranque.ogg",
+            "policia": "assets/audio/policia.ogg",
+            "ambulancia": "assets/audio/ambulancia.ogg",
+        }.items():
+            try:
+                self._sonidos[nombre] = pygame.mixer.Sound(archivo)
+            except Exception:
+                pass
+        self._canal_sirena = None
         self._frame_n       = 0
         self.gestor_eventos = GestorEventos()
         self.metricas = {
@@ -228,8 +240,13 @@ class GestorSimulacion:
 
     def cambiar_escenario(self, indice):
         if 0 <= indice < len(self.escenarios):
-            self.indice    = indice
+            for carril in self.escenario.carriles:
+                for v in carril.vehiculos:
+                    canal = getattr(v, "_canal_audio", None)
+                    if canal: canal.stop()
+            self.indice = indice
             self.escenario = self.escenarios[indice]
+            ...  # resto igual
             self.escenario.reiniciar()
             self.metricas = {k: (0 if isinstance(v, int) else 0.0) for k, v in self.metricas.items()}
             self._frame_n = 0
@@ -286,7 +303,17 @@ class GestorSimulacion:
             vehiculo = TIPOS_VEHICULO[tipo](f"V{self._id}", carril)
             self._id += 1
             carril.vehiculos.append(vehiculo)
-            self.metricas["generados"] += 1
+            if tipo in ("policia", "ambulancia"):
+                s = self._sonidos.get(tipo)
+                if s:
+                    # si ya hay una sirena sonando, no interrumpir
+                    if self._canal_sirena is None or not self._canal_sirena.get_busy():
+                        s.set_volume(0.30)
+                        self._canal_sirena = s.play(-1)
+                        vehiculo._canal_audio = self._canal_sirena
+            else:
+                s = self._sonidos.get("arranque")
+                if s: s.set_volume(0.20); s.play()
 
     def _procesar_cambios_carril(self):
         for carril in self.escenario.carriles:
@@ -329,8 +356,17 @@ class GestorSimulacion:
                 cola_total += 1
         for carril in self.escenario.carriles:
             salidos = [v for v in carril.vehiculos if v.salio_del_mapa() and (
-                v._estado_cambio != "CAMBIANDO" or abs(getattr(v, "offset_lateral", 0.0)) < 0.5
+                    v._estado_cambio != "CAMBIANDO" or abs(getattr(v, "offset_lateral", 0.0)) < 0.5
             )]
+            # ── detener sirena al salir ─────────────────────
+            for v in salidos:
+                canal = getattr(v, "_canal_audio", None)
+                if canal:
+                    canal.stop()
+                    if canal is self._canal_sirena:
+                        self._canal_sirena = None
+
+            self.metricas["salidos"] += len(salidos)
             self.metricas["salidos"] += len(salidos)
             carril.vehiculos = [v for v in carril.vehiculos if v not in salidos]
         self.metricas["activos"]            = sum(len(c.vehiculos) for c in self.escenario.carriles)
