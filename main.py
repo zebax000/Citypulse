@@ -22,7 +22,7 @@ class App:
         self.superficie_sim = pygame.Surface((self.ANCHO_SIM, self.ALTO))
         self.reloj = pygame.time.Clock()
 
-        #carga de ssonido
+        #carga de sonido
         pygame.mixer.init()
         pygame.mixer.music.load("assets/audio/trafico.ogg")
         pygame.mixer.music.set_volume(0.20)  # 20%, para que sea sutil
