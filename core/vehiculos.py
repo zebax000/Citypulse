@@ -117,6 +117,7 @@ class Vehiculo:
 
         self._cediendo_paso   = False
         self._cooldown_cesion = 0.0
+        self._decision_cruce  = None   # None | "CRUZAR" | "DETENER"
 
         # Fase E: posición lateral dentro del carril (inactivo hasta Fase E)
         self.posicion_lateral = 0.0
@@ -146,6 +147,40 @@ class Vehiculo:
 
     def ya_cruzo_linea_de_pare(self):
         return self._progreso_pare_activo() is None
+
+    def puede_entrar_a_cruce(self):
+        """
+        Restricción física de box blocking.
+        Retorna False solo si el espacio después del cruce está
+        genuinamente ocupado por un vehículo detenido o muy lento.
+        Vehículos en movimiento no bloquean — se proyecta su posición.
+        """
+        carril = self.carril
+
+        distancia_al_pare = self._limite_pare() - self.frente_progreso()
+        if distancia_al_pare > 50 or distancia_al_pare < 0:
+            return True
+
+        largo_propio = self._largo() + DISTANCIA_MINIMA * 2
+
+        vehiculos_salida = [
+            v for v in carril.vehiculos
+            if v is not self
+            and v.progreso > carril.progreso_pare
+            and v._estado_cambio != "CAMBIANDO"
+        ]
+
+        if not vehiculos_salida:
+            return True
+
+        mas_cercano = min(vehiculos_salida, key=lambda v: v.progreso)
+
+        # proyectar posición en ~0.5s — si se está moviendo, habrá espacio
+        tiempo_llegada  = max(0.1, distancia_al_pare / max(1.0, self.velocidad_actual))
+        proyeccion      = mas_cercano.cola_progreso() + mas_cercano.velocidad_actual * min(tiempo_llegada, 1.0)
+        espacio_real    = proyeccion - carril.progreso_pare
+
+        return espacio_real >= largo_propio
 
     def _limite_pare(self):
         pp = self._progreso_pare_activo()
@@ -183,7 +218,10 @@ class Vehiculo:
     def _ceder_paso_si_necesario(self, dt):
         if self._cooldown_cesion > 0:
             self._cooldown_cesion -= dt
+            if self._cooldown_cesion <= 0:
+                self._cediendo_paso = False   # reset al expirar cooldown
             return
+
         for vecino in self.carril.vecinos:
             for otro in vecino.vehiculos:
                 if getattr(otro, "_estado_cambio", "LIBRE") != "PREPARANDO":
@@ -197,7 +235,8 @@ class Vehiculo:
                     self._cediendo_paso   = True
                     self._cooldown_cesion = random.uniform(1.5, 3.0)
                 return
-        self._cediendo_paso = False
+        if self._cediendo_paso:
+            self._cediendo_paso = False
 
     def _hueco_seguro_en(self, carril_destino, posicion_lateral_destino: float = 0.0):
         mi_frente = self.frente_progreso()
@@ -259,6 +298,8 @@ class Vehiculo:
         if self._cooldown_cambio > 0 or self._estado_cambio != "LIBRE":
             return
         for vecino in self.carril.vecinos:
+            if getattr(vecino, "bloqueado_accidente", False):
+                continue   # no cambiar a carril con accidente
             if not self._conviene_cambiar(vecino, vehiculo_frente):
                 continue
             if not self._hueco_seguro_en(vecino):
@@ -417,17 +458,37 @@ class Vehiculo:
         objetivo = self.velocidad_max
         limite   = None
 
-        if estado_semaforo == "ROJO" and not self.ya_cruzo_linea_de_pare():
-            limite = self._limite_pare()
-        elif estado_semaforo == "AMARILLO" and not self.ya_cruzo_linea_de_pare():
-            if ((self._limite_pare() - self.frente_progreso()) > 55
-                    or self.tolerancia_amarillo < 0.45):
+        # ── lógica de semáforo con decisión binaria ────────────────────────
+        if not self.ya_cruzo_linea_de_pare():
+
+            if estado_semaforo == "ROJO":
+                # siempre detenerse
+                self._decision_cruce = "DETENER"
+
+            elif estado_semaforo == "AMARILLO":
+                # tomar decisión UNA sola vez al entrar en zona amarilla
+                if self._decision_cruce is None:
+                    distancia = self._limite_pare() - self.frente_progreso()
+                    puede_cruzar = (
+                        distancia <= 55
+                        or self.tolerancia_amarillo >= 0.45
+                    )
+                    self._decision_cruce = "CRUZAR" if puede_cruzar else "DETENER"
+
+            else:
+                # VERDE — sin restricción
+                self._decision_cruce = None
+
+            # aplicar decisión
+            if self._decision_cruce == "DETENER":
                 limite = self._limite_pare()
 
+        # ── seguidor de vehículo delante ───────────────────────────────────
         if vehiculo_frente is not None and vehiculo_frente.carril is self.carril:
             limite_v = vehiculo_frente.cola_progreso() - self._distancia_seguridad()
             limite   = min(limite, limite_v) if limite is not None else limite_v
 
+        # ── velocidad objetivo basada en límite ────────────────────────────
         if limite is not None:
             distancia = limite - self.frente_progreso()
             if distancia <= 0:
@@ -436,17 +497,24 @@ class Vehiculo:
                 objetivo,
                 math.sqrt(max(0.0, 2.0 * self.frenado * distancia))
             )
+
         return objetivo, limite
 
     def actualizar(self, dt, vehiculo_frente, estado_semaforo):
         if self._cooldown_cambio > 0:
             self._cooldown_cambio -= dt
+        # reset decisión de cruce si ya pasó la línea o semáforo está verde
+        if self.ya_cruzo_linea_de_pare():
+            self._decision_cruce = None
 
         self._ejecutar_cambio_si_listo(dt)
         self._actualizar_animacion_lateral(dt)
         self._ceder_paso_si_necesario(dt)
 
-        vel_obj, limite = self._velocidad_objetivo(vehiculo_frente, estado_semaforo)
+        # ── box blocking prevention — solo activo cerca del cruce ─────────
+        estado_efectivo = estado_semaforo
+
+        vel_obj, limite = self._velocidad_objetivo(vehiculo_frente, estado_efectivo)
 
         if self._cediendo_paso:
             vel_obj = min(vel_obj, self.velocidad_max * 0.65)
@@ -468,9 +536,13 @@ class Vehiculo:
             )
         self.velocidad_actual = max(0.0, self.velocidad_actual)
 
-        if estado_semaforo == "ROJO" and not self.ya_cruzo_linea_de_pare():
-            if self.frente_progreso() >= self._limite_pare() - 1.0:
-                self.velocidad_actual = 0.0
+        # clamp físico final — solo si realmente sobrepasó el límite en DETENER
+        if (self._decision_cruce == "DETENER"
+                and not self.ya_cruzo_linea_de_pare()
+                and self.frente_progreso() >= self._limite_pare()):
+            self.velocidad_actual = max(
+                0.0, self.velocidad_actual - self.frenado * dt * 3
+            )
 
         avance = self.velocidad_actual * dt
         if limite is not None:
