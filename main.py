@@ -12,15 +12,22 @@ class App:
 
     def __init__(self):
         pygame.init()
+        pygame.mixer.init()
+        try:
+            pygame.mixer.music.load("assets/audio/trafico.ogg")
+            pygame.mixer.music.set_volume(0.20)
+            pygame.mixer.music.play(-1)
+        except Exception:
+            pass
         pygame.display.set_caption("CityPulse – Simulador de Tráfico Urbano")
-        self.ventana        = pygame.display.set_mode((self.ANCHO_SIM + self.ANCHO_PANEL, self.ALTO))
+        self.ventana = pygame.display.set_mode((self.ANCHO_SIM + self.ANCHO_PANEL, self.ALTO))
         self.superficie_sim = pygame.Surface((self.ANCHO_SIM, self.ALTO))
-        self.reloj          = pygame.time.Clock()
-        self.fuente_titulo  = pygame.font.SysFont("consolas", 22, bold=True)
-        self.fuente_texto   = pygame.font.SysFont("consolas", 16)
-        self.gestor         = GestorSimulacion()
-        self.corriendo      = True
-        self.debug          = False
+        self.reloj = pygame.time.Clock()
+        self.fuente_titulo = pygame.font.SysFont("consolas", 22, bold=True)
+        self.fuente_texto = pygame.font.SysFont("consolas", 16)
+        self.gestor = GestorSimulacion()
+        self.corriendo = True
+        self.debug = False
 
     def _manejar_eventos(self):
         for evento in pygame.event.get():
